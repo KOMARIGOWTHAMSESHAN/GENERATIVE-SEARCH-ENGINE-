@@ -1,3 +1,49 @@
-myenv/
-_pycache_/
+#  Python Virtual Environments & Interpreter Cache
+
+**/myenv/
+**/.venv/
+**/env/
+**/venv/
+**/ENV/
+**/_pycache_/
+*/.pyc
+*/.pyo
+*/.pyd
+**/.pytest_cache/
+**/.pyvenv.cfg
+
+#  Node.js Dependencies & Next.js Build Artifacts
+
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/dist/
+**/.lighthouserc/
+**/.eslintcache/
+*.tsbuildinfo
+
+#  Infrastructure Containers & Database Volumes
+
+*/.log
+**/qdrant_data/
+**/.docker/
+
+#  Security Records & Cryptographic Keys
+
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*/.pem
+*/.key
+
+#  Operating System Discards (Windows / macOS Metadata)
+
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
