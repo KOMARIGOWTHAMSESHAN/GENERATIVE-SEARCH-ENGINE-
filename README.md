@@ -1,63 +1,143 @@
-# Full-Stack Local Generative Search Engine (RAG)
+Generative Search Engine
 
-This is a full-stack, entirely local Generative Search Engine project. I am building this in modular sprints. Yesterday, I focused on getting the core FastAPI and Llama 3 streaming connection working. Today, I expanded the architecture by adding document chunking, an NLP intent classifier, a local Qdrant vector database running inside Docker, and a frontend built with Next.js.
+Overview
 
-The project is currently a work in progress, but the full-stack communication layer and the basic RAG pipeline are completely up and running.
+Generative Search Engine is a full-stack AI-powered search platform that combines traditional search workflows with retrieval-augmented generation (RAG). The system dynamically analyzes user intent and routes queries through either a search pipeline or a research pipeline.
+
+For direct information retrieval, the application performs semantic search using vector embeddings stored in Qdrant. For research-oriented queries, the system retrieves relevant context and generates detailed responses using a local Llama 3 model running through Ollama.
+
+The goal of this project is to explore how modern search systems can combine information retrieval, vector databases, large language models, and adaptive user interfaces within a single application.
 
 ---
 
-##  Project Structure & Files
+Features
 
-I have separated the project cleanly into two main directories to keep the backend logic and frontend UI completely independent:
+- Intent-aware query routing
+- Semantic vector search using embeddings
+- Retrieval-Augmented Generation (RAG)
+- Local LLM inference using Ollama (Llama 3)
+- Qdrant vector database integration
+- FastAPI backend services
+- Next.js frontend interface
+- Adaptive UI for search and research workflows
+- Modular architecture for future web search integration
 
-###  Backend (/GENERATIVE_SEARCH_ENGINE-BACKEND)
+---
 
-This folder contains the Python scripts handling the data pipeline, database communication, and AI generation:
-* main.py — The entry point for the FastAPI server that handles the streaming API endpoints.
-* intent_classifier.py — A basic NLP routing script that checks what the user wants so the system can decide between standard search layouts or deep AI research.
-* chunking.py & ingest.py — Scripts that split raw documents into clean, manageable text blocks.
-* embed.py — Handles creating local vector embeddings from the text chunks.
-* rag.py & search.py — The core logic that pulls matching context from the database and structures the final prompt for the LLM.
-* store_documents.py & test_qdrant.py — Database scripts used to verify connections and save data inside the vector store.
+System Architecture
 
-###  Frontend (/GENERATIVE_SEARCH_ENGINE-FRONTEND)
+User Query
+↓
+Intent Classification
+↓
+┌─────────────────────┬─────────────────────┐
+│                     │
+Search Mode      Research Mode
+│                     │
+Qdrant Search     Context Retrieval
+│                     │
+Search Results    Llama 3 Generation
+│                     │
+Frontend Display  Research Report
 
-A modern Next.js web application setup:
-* app/page.tsx — My main interface file. It uses React hooks and fetch streams to catch the tokens coming from FastAPI and display them live on the screen with a smooth typewriter effect.
+---
 
+Technology Stack
 
-##  Tech Stack
-* *Frontend:* Next.js (React), Node.js, TypeScript
-* *Backend:* FastAPI (Python), Uvicorn
-* *Vector Database:* Qdrant DB (Running locally via Docker)
-* *Local LLM Engine:* Ollama running Llama 3
+Frontend
 
+- Next.js
+- React
+- TypeScript
 
-##  How to Run the App Locally
+Backend
 
-### 1. Run Qdrant Database
-Make sure Docker Desktop is open, then start the Qdrant container:
-```bash
-docker run -p 6333:6333 qdrant/qdrant
+- FastAPI
+- Python
 
-### 2. Start Ollama
-Make sure your local Ollama instance has the model ready :
-```bash
-ollama run llama3
+AI & Retrieval
 
-### 3. Run the Backend
-Open the terminal inside the backend directionary , activate the virtual environment install the requirements and boot up the server :
-```bash
-cd GENERATIVE_SEARCH_ENGINE-BACKEND
-.\myenv\Scripts\Activate.ps1
-pip install fastapi uvicorn pydantic ollama qdrant-client
-python main.py
+- Ollama
+- Llama 3
+- Qdrant
+- Vector Embeddings
 
-### 4. Run the Frontend
-Open a separate terminal window , navigate to the frontend directiory,install the packaes and start the development server :
-```bash
-cd GENERATIVE_SEARCH_ENGINE-FRONTEND
-npm install
-npm run dev 
+Development Tools
 
-*Head to http://localhost:3000 to test the full app interface
+- Docker
+- Git
+- GitHub
+
+---
+
+Project Structure
+
+backend/
+
+- main.py
+- ingest.py
+- embeddings.py
+- search.py
+- rag.py
+- chunking.py
+- store_documents.py
+
+frontend/
+
+- src/app/page.tsx
+
+---
+
+How It Works
+
+1. The user submits a query through the frontend.
+2. The intent classification module determines whether the query is informational or research-oriented.
+3. Search queries are routed to the retrieval pipeline.
+4. Research queries retrieve relevant context from Qdrant and generate responses using Llama 3.
+5. Results are returned to the frontend and displayed in an adaptive interface.
+
+---
+
+Current Capabilities
+
+- Local AI-powered question answering
+- Semantic document retrieval
+- Research report generation
+- Adaptive search interface
+- Retrieval-Augmented Generation pipeline
+
+---
+
+Future Improvements
+
+- Real-time web search integration
+- YouTube search support
+- Multi-document ingestion
+- PDF knowledge base support
+- User authentication
+- Search history
+- Response streaming
+- Cloud deployment
+
+---
+
+Learning Outcomes
+
+Through this project, I gained practical experience with:
+
+- Retrieval-Augmented Generation (RAG)
+- Vector databases
+- Embedding models
+- FastAPI development
+- Next.js application development
+- API integration
+- Local LLM deployment
+- Full-stack AI system design
+
+---
+
+Author
+
+Gowtham
+
+Built as a personal project to explore modern AI-powered search systems, semantic retrieval, and retrieval-augmented generation architectures.
