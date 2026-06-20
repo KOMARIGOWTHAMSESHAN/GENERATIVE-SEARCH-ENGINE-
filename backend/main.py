@@ -19,6 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Initialize Tavily
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 tavily_client = TavilyClient(api_key=TAVILY_API_KEY)
 
@@ -26,66 +27,63 @@ class SearchRequest(BaseModel):
     query: str
 
 def determine_intent(query: str) -> str:
+    """
+    Instant, lightning-fast intent routing. 
+    If the query looks for an educational deep dive, return 'ai' (Gemini layout).
+    If it's a simple keyword/lookup, return 'web' (Google layout).
+    """
     q = query.lower().strip()
+    
+    # Action keywords that demand a conversational explanation canvas
     research_triggers = [
-        "explain", "what is", "how to", "why does", "calculus", 
+        "explain",  "how to", "why does", "calculus", 
         "tutorial", "derive", "theory", "difference between", 
         "teach me", "guide", "concept"
     ]
+    
     if any(trigger in q for trigger in research_triggers):
         return "ai"
+        
     return "web"
 
 def get_youtube_results(query: str):
     try:
         videos = VideosSearch(query, limit=4).result()["result"]
-        if videos:
-            return [{"title": v["title"], "url": v["link"]} for v in videos]
-    except Exception as e:
-        print("YouTube Search Error:", e)
-    
-    # FALLBACK: If YouTube library fails or blocks, generate reliable direct educational links
-    return [
-        {"title": f"Introduction to {query} on YouTube", "url": f"https://www.youtube.com/results?search_query={query}"},
-        {"title": f"{query} Crash Course Tutorial", "url": f"https://www.youtube.com/results?search_query={query}+tutorial"}
-    ]
+        return [{"title": v["title"], "url": v["link"]} for v in videos]
+    except:
+        return []
 
 @app.post("/api/generative-search")
 async def search(req: SearchRequest):
     query = req.query
+    
+    # 1. Instantly get intent (0.00 milliseconds)
     intent = determine_intent(query)
     
     web_results = []
-    image_results = []
     context_text = ""
 
-    # Fetch live text AND images via Tavily Search API
+    # 2. Fetch live data via Tavily Search API
     try:
-        tavily_response = tavily_client.search(query=query, max_results=5, include_images=True)
-        
-        # 1. Parse Web Results
+        tavily_response = tavily_client.search(query=query, max_results=5)
         for result in tavily_response.get("results", []):
             web_results.append({
-                "title": result.get("title", "No Title Specified"),
-                "url": result.get("url", "https://google.com"),
+                "title": result.get("title", "No Title"),
+                "url": result.get("url", "#"),
                 "snippet": result.get("content", "")
             })
         context_text = " ".join([r["title"] + " " + r["snippet"] for r in web_results])
-        
-        # 2. Parse Live Real Images from Tavily!
-        raw_images = tavily_response.get("images", [])
-        if raw_images:
-            for img in raw_images[:4]:
-                # Handle dictionary or raw string formats seamlessly
-                img_url = img.get("url") if isinstance(img, dict) else img
-                if img_url:
-                    image_results.append({"url": img_url})
-                    
     except Exception as e:
-        print("Tavily Error Extraction Exception:", e)
+        print("Tavily Error:", e)
 
-  
-  
+    video_results = get_youtube_results(query)
+    
+    image_results = [
+        {"url": f"https://placehold.co/500x350?text={query}+1"},
+        {"url": f"https://placehold.co/500x350?text={query}+2"}
+    ]
+
+    # 3. Only invoke Ollama to synthesize information if it's genuinely needed
     answer = ""
     if intent == "ai":
         try:
@@ -93,20 +91,21 @@ async def search(req: SearchRequest):
                 model="llama3",
                 messages=[{
                     "role": "user",
-                    "content": f"You are Gemini. Explain this topic elegantly with crisp layouts, paragraphs, and lists:\nQuery: {query}\nContext: {context_text}"
+                    "content": f"You are Gemini, a helpful research assistant. Explain this concept beautifully with structured spacing, clear headings, and logical bullet points:\nQuery: {query}\nContext: {context_text}"
                 }]
             )
             answer = ai_res["message"]["content"]
         except:
-            answer = "AI generation node failed to synthesize payload."
+            answer = "AI generation module timed out."
 
     return {
         "intent": intent, 
         "answer": answer,
         "web_results": web_results,
-  
+        "image_results": image_results,
+        "video_results": video_results,
         "followups": [
-            f"Core foundational frameworks of {query}",
-            f"Practical implementations of {query}"
+            f"Core foundational principles of {query}",
+            f"Practical application workflow of {query}"
         ]
     }
