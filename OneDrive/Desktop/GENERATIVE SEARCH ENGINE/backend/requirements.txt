@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic
+qdrant-client
+google-generativeai
+
+requests
+qdrant-client
+langchain-text-splitters
+python-dotenv
+tavily-python
+youtube-search
+
