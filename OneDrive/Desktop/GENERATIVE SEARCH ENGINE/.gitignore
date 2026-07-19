@@ -1,4 +1,7 @@
 Python
+backend/myenv/
+backend/myenv311/
+backend/ .env
 
 pycache/
 *.pyc
