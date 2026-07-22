@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 export default function Home() {
   const [query, setQuery] = useState("");
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const [activeTab, setActiveTab] = useState<"all" >("all");
 
   const [data, setData] = useState({
@@ -52,7 +54,42 @@ export default function Home() {
     setActiveTab("all");
   };
 
-  // Helper to detect social media and return a clean badge style
+  const startListening = () => {
+  const SpeechRecognition =
+    (window as any).SpeechRecognition ||
+    (window as any).webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("Speech Recognition is not supported in this browser.");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.start();
+  setListening(true);
+
+  recognition.onresult = (event: any) => {
+    const text = event.results[0][0].transcript;
+    setQuery(text);
+    handleSearch(text);
+  };
+  recognition.onend = () => {
+    setListening(false);
+  };
+
+  recognition.onerror = () => {
+    setListening(false);
+  };
+  recognitionRef .current = recognition
+};
+
+
+  
   const getSocialBadge = (url: string) => {
     const lowerUrl = url.toLowerCase ? url.toLowerCase() : String(url).toLowerCase();
     if (lowerUrl.includes("youtube.com") || lowerUrl.includes("youtu.be")) {
@@ -62,9 +99,7 @@ export default function Home() {
     return null;
   };
 
-  // ==========================================
-  // 1. INITIAL LANDING SCREEN INTERFACE
-  // ==========================================
+
   if (!searched) {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", fontFamily: "'Segoe UI', system-ui, sans-serif", background: "#f8f9fa" }}>
@@ -79,6 +114,24 @@ export default function Home() {
             style={{ width: "100%", padding: "18px 28px", borderRadius: "30px", border: "1px solid #ced4da", fontSize: "16px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)", outline: "none", transition: "0.2s" }}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
+          <button
+  onClick={startListening}
+  style={{
+    position: "absolute",
+    right: "60px",
+    top: "7px",
+    width: "46px",
+    height: "46px",
+    borderRadius: "50%",
+    background: listening ? "#ea4335" : "#34a853",
+    color: "white",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "18px"
+  }}
+>
+  🎤
+</button>
           <button onClick={() => handleSearch()} style={{ position: "absolute", right: "8px", top: "7px", width: "46px", height: "46px", borderRadius: "50%", background: "#1a73e8", color: "white", border: "none", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             🔍
           </button>
@@ -87,9 +140,7 @@ export default function Home() {
     );
   }
 
-  // ==========================================
-  // LOADING STATE
-  // ==========================================
+
   if (loading) {
     return (
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "'Segoe UI', sans-serif", background: "#f8f9fa" }}>
@@ -100,9 +151,7 @@ export default function Home() {
     );
   }
 
-  // ==========================================
-  // 2. INTERFACE A: GEMINI AI CANVAS VIEW
-  // ==========================================
+
   if (data.intent === "ai") {
     return (
       <div style={{ minHeight: "100vh", background: "#0f1114", color: "#e3e3e3", fontFamily: "'Segoe UI', system-ui, sans-serif", padding: "50px 24px" }}>
@@ -136,9 +185,7 @@ export default function Home() {
     );
   }
 
-  // ==========================================
-  // 3. INTERFACE B: CLEAN GOOGLE SEARCH VIEW
-  // ==========================================
+
   return (
     <div style={{ minHeight: "100vh", background: "#ffffff", color: "#202124", fontFamily: "'Segoe UI', system-ui, sans-serif", padding: "30px 40px" }}>
       
